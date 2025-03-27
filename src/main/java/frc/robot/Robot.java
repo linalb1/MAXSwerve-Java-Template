@@ -5,8 +5,14 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.Climb.Climb;
+import frc.robot.subsystems.claw.Claw;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.Elevator.elevatorStates;
+import edu.wpi.first.wpilibj.XboxController;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -19,6 +25,12 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;
 
+  public XboxController operator;
+  public XboxController driver;
+
+  private Elevator elevator;
+  private Claw claw;
+  private Climb climb;
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -28,6 +40,13 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    
+    elevator = Elevator.getInstance();
+    claw = Claw.getInstance();
+    climb = Climb.getInstance();
+
+    operator = new XboxController(0);
+    driver = new XboxController(1);
   }
 
   /**
@@ -43,6 +62,12 @@ public class Robot extends TimedRobot {
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
+
+    SmartDashboard.putNumber("encoder eleL val", elevator.elevatorL.getEncoder().getPosition());
+    SmartDashboard.putNumber("encoder eleR val", elevator.elevatorR.getEncoder().getPosition());
+
+    SmartDashboard.putNumber("encoder hinge val", claw.clawHinge.getEncoder().getPosition());
+    //SmartDashboard  
     CommandScheduler.getInstance().run();
   }
 
@@ -84,11 +109,28 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+
   }
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    if(operator.getAButton())
+      climb.setThOn();
+    else if(operator.getBButton())
+      climb.setThReverse();
+    else
+      climb.setThOff();
+    
+
+    if(operator.getYButton())
+      climb.setThWheelsOn();
+    else if(operator.getXButton())
+      climb.setThWheelsReverse();
+    else
+      climb.setThWheelsOff();
+  }
 
   @Override
   public void testInit() {
